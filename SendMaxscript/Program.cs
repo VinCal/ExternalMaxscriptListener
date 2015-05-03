@@ -60,6 +60,8 @@ namespace SendMaxscript
             {
                 Console.WriteLine("Unable to find External Maxscript Listener window");
             }
+
+            Console.ReadLine();
         }
 
         private static bool FindExternalMaxscriptListener()
