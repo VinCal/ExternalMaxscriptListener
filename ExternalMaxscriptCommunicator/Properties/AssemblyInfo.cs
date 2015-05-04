@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("SendMaxscript")]
+[assembly: AssemblyTitle("ExternalMaxscriptCommunicator")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("SendMaxscript")]
+[assembly: AssemblyProduct("ExternalMaxscriptCommunicator")]
 [assembly: AssemblyCopyright("Copyright ©  2015")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("e20a010f-300c-4589-9c43-97729fc09d1e")]
+[assembly: Guid("d3bb0f28-2aec-441d-9cb7-620967f04893")]
 
 // Version information for an assembly consists of the following four values:
 //

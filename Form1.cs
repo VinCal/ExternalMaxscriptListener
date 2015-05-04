@@ -7,22 +7,27 @@ using System.Text;
 using System.Windows.Forms;
 using Autodesk.Max;
 
-namespace ExternalMaxscriptListener
+namespace ExternalMaxscript
 {
     /// <summary>
     /// Autodesk.Max Plugin class, gets loaded when Max loads. Hide the form and disable ShowInTaskbar.
     /// </summary>
-    public class ExternalMaxscriptListner : IPlugin
+    public class ExternalMaxscriptListner : Autodesk.Max.IPlugin
     {
+        private ExternalMaxscriptListener _Dialog;
+
         public void Cleanup()
-        { }
+        {
+            _Dialog.Close();
+            _Dialog.Dispose();
+        }
 
         public void Initialize(IGlobal global, ISynchronizeInvoke sync)
         {
-            var dialog = new ExternalMaxscriptListener();
-            dialog.Show();
-            dialog.Hide();
-            dialog.ShowInTaskbar = false;
+            _Dialog = new ExternalMaxscriptListener();
+            _Dialog.Show();
+            _Dialog.Hide();
+            _Dialog.ShowInTaskbar = false;
         }
     }
 
@@ -37,12 +42,16 @@ namespace ExternalMaxscriptListener
 
         //Used for WM_COPYDATA for string messages
         [StructLayout(LayoutKind.Sequential)]
-        public struct COPYDATASTRUCT
+        private struct COPYDATASTRUCT
         {
             public IntPtr dwData;
             public int cbData;
             public IntPtr lpData;
         }
+
+        private const string Command = "_COMM_";
+        private const string Path = "_PATH_";
+        private const int TypeLength = 6;
 
         public ExternalMaxscriptListener()
         {
@@ -65,7 +74,14 @@ namespace ExternalMaxscriptListener
                     Marshal.Copy(cds.lpData, buff, 0, cds.cbData);
                     string msg = Encoding.ASCII.GetString(buff, 0, cds.cbData);
 
-                    if (File.Exists(msg))
+                    string type = msg.Substring(0, TypeLength);
+                    msg = msg.Substring(TypeLength);
+
+                    if (type == Command)
+                    {
+                        GlobalInterface.Instance.ExecuteMAXScriptScript(msg, false, null);
+                    }
+                    else if (type == Path)
                     {
                         string errorLog = String.Empty;
                         bool result = GlobalInterface.Instance.FileinScriptEx(msg, errorLog);
@@ -74,8 +90,6 @@ namespace ExternalMaxscriptListener
                             Log(errorLog, true);
                         }
                     }
-                    else
-                        GlobalInterface.Instance.ExecuteMAXScriptScript(msg, false, null);
 
                     m.Result = (IntPtr)1;
                     return;
