@@ -37,8 +37,11 @@ namespace ExternalMaxscript
             public IntPtr lpData;
         }
 
-        private const string Command = "_COMM_";
-        private const string Path = "_PATH_";
+        private enum Type
+        {
+            Command,
+            Path
+        };
 
         //Data-member to keep track of the Window handle for our External Maxscript Listener window. 
         private static IntPtr _ExternalMxsListenerHwnd;
@@ -78,10 +81,7 @@ namespace ExternalMaxscript
                 throw new ArgumentException("Message string has no characters.", "msg");
             }
 
-            //We add an extra bit to the string so we know that this is a maxscript command and not a path. This is important in WndProc where we process the message
-            msg = Command + msg;
-
-            SendMessage(msg);
+            SendMessage(msg, Type.Command);
         }
 
         /// <summary>
@@ -99,21 +99,18 @@ namespace ExternalMaxscript
                 throw new ArgumentException("path is not a valid path and can therefor not be evaluated by MAXScript");
             }
 
-            //We add an extra bit to the string so we know that this is a maxscript command and not a path. This is important in WndProc where we process the message
-            path = Path + path;
-
-            SendMessage(path);
+            SendMessage(path, Type.Path);
         }
 
         /// <summary>
         /// Sends the msg to External Maxscript Listener
         /// </summary>
-        private static void SendMessage(string msg)
+        private static void SendMessage(string msg, Type typeOfMsg)
         {
             byte[] buff = Encoding.ASCII.GetBytes(msg);
 
             COPYDATASTRUCT cds;
-            cds.dwData = (IntPtr)100;
+            cds.dwData = (IntPtr)typeOfMsg;
             cds.lpData = Marshal.AllocHGlobal(buff.Length);
             Marshal.Copy(buff, 0, cds.lpData, buff.Length);
             cds.cbData = buff.Length;

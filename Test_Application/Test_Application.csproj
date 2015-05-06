@@ -68,7 +68,7 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ExternalMaxscriptCommunicator\ExternalMaxscriptSender.csproj">
+    <ProjectReference Include="..\ExternalMaxscriptSender\ExternalMaxscriptSender.csproj">
       <Project>{36526ebf-01b8-4438-a951-66b73c13010d}</Project>
       <Name>ExternalMaxscriptSender</Name>
     </ProjectReference>

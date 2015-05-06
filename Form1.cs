@@ -49,9 +49,11 @@ namespace ExternalMaxscript
             public IntPtr lpData;
         }
 
-        private const string Command = "_COMM_";
-        private const string Path = "_PATH_";
-        private const int TypeLength = 6;
+        private enum Type
+        {
+            Command,
+            Path
+        };
 
         public ExternalMaxscriptListener()
         {
@@ -73,15 +75,13 @@ namespace ExternalMaxscript
                     var buff = new byte[cds.cbData];
                     Marshal.Copy(cds.lpData, buff, 0, cds.cbData);
                     string msg = Encoding.ASCII.GetString(buff, 0, cds.cbData);
+                    IntPtr type = cds.dwData;
 
-                    string type = msg.Substring(0, TypeLength);
-                    msg = msg.Substring(TypeLength);
-
-                    if (type == Command)
+                    if ((Type)type == Type.Command)
                     {
                         GlobalInterface.Instance.ExecuteMAXScriptScript(msg, false, null);
                     }
-                    else if (type == Path)
+                    else if ((Type)type == Type.Path)
                     {
                         string errorLog = String.Empty;
                         bool result = GlobalInterface.Instance.FileinScriptEx(msg, errorLog);
