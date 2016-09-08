@@ -37,11 +37,12 @@ namespace ExternalMaxscript
             public IntPtr lpData;
         }
 
-        private enum Type
-        {
-            Command,
-            Path
-        };
+        //private enum Type
+        //{
+        //    Command,
+        //    Path,
+        //    ListenerMsg
+        //};
 
         //Data-member to keep track of the Window handle for our External Maxscript Listener window. 
         private static IntPtr _ExternalMxsListenerHwnd;
@@ -50,6 +51,7 @@ namespace ExternalMaxscript
         /// This methods should be called once to connect to the External Maxscript Listener plugin loaded by 3ds Max.
         /// </summary>
         /// <returns>True if connecting and sending the WM_USER_INITIALIZE message was successful, false otherwise</returns>
+        [ComVisible(true)]
         public static bool Initialize()
         {
             _ExternalMxsListenerHwnd = FindWindowByCaption(IntPtr.Zero, "External Maxscript Listener");
@@ -69,6 +71,7 @@ namespace ExternalMaxscript
         /// Sends msg to External Maxscript Listener, which in turn executes the maxscript code.
         /// </summary>
         /// <param name="msg">Points to a null-terminated string that specifies the MAXScript commands to compile and evaluate. This expects a string containing Maxscript expressions, NOT a file path.</param>
+        [ComVisible(true)]
         public static void ExecuteMAXScriptScript(string msg)
         {
             if (_ExternalMxsListenerHwnd == IntPtr.Zero)
@@ -81,13 +84,14 @@ namespace ExternalMaxscript
                 throw new ArgumentException("Message string has no characters.", "msg");
             }
 
-            SendMessage(msg, Type.Command);
+            SendMessage(msg, MaxscriptParser.Type.Command);
         }
 
         /// <summary>
         /// Send path to External Maxscript Listener, which in turn evaluates the script at the given location.
         /// </summary>
         /// <param name="path">The fully qualified path to the existing file. This can be either maxscript files (*.ms), or maxscript zip files (*.mzp), or encrypted maxscript files (*.mse).</param>
+        [ComVisible(true)]
         public static void EvaluateMaxScript(string path)
         {
             if (_ExternalMxsListenerHwnd == IntPtr.Zero)
@@ -99,13 +103,32 @@ namespace ExternalMaxscript
                 throw new ArgumentException("path is not a valid path and can therefor not be evaluated by MAXScript");
             }
 
-            SendMessage(path, Type.Path);
+            SendMessage(path, MaxscriptParser.Type.Path);
+        }
+
+        /// <summary>
+        /// Sends a 
+        /// </summary>
+        /// <param name="msg"></param>
+        public static void Log(string msg)
+        {
+            if (_ExternalMxsListenerHwnd == IntPtr.Zero)
+            {
+                throw new NullReferenceException("Can't send message, External Maxscript Listener is not found." + Environment.NewLine + @"Did you forget to Call: ""FindExternalMaxscriptListener()""?");
+            }
+
+            if (msg.Length <= 0)
+            {
+                throw new ArgumentException("Message string has no characters.", "msg");
+            }
+
+            SendMessage(msg, MaxscriptParser.Type.ListenerMsg);
         }
 
         /// <summary>
         /// Sends the msg to External Maxscript Listener
         /// </summary>
-        private static void SendMessage(string msg, Type typeOfMsg)
+        private static void SendMessage(string msg, MaxscriptParser.Type typeOfMsg)
         {
             byte[] buff = Encoding.ASCII.GetBytes(msg);
 

@@ -12,7 +12,7 @@ namespace ExternalMaxscript
     /// <summary>
     /// Autodesk.Max Plugin class, gets loaded when Max loads. Hide the form and disable ShowInTaskbar.
     /// </summary>
-    public class ExternalMaxscriptListner : Autodesk.Max.IPlugin
+    public class ExternalMaxscriptListner : IPlugin
     {
         private ExternalMaxscriptListener _Dialog;
 
@@ -49,12 +49,6 @@ namespace ExternalMaxscript
             public IntPtr lpData;
         }
 
-        private enum Type
-        {
-            Command,
-            Path
-        };
-
         public ExternalMaxscriptListener()
         {
             ClientSize = new System.Drawing.Size(1, 1);
@@ -77,11 +71,11 @@ namespace ExternalMaxscript
                     string msg = Encoding.ASCII.GetString(buff, 0, cds.cbData);
                     IntPtr type = cds.dwData;
 
-                    if ((Type)type == Type.Command)
+                    if ((MaxscriptParser.Type)type == MaxscriptParser.Type.Command)
                     {
                         GlobalInterface.Instance.ExecuteMAXScriptScript(msg, false, null);
                     }
-                    else if ((Type)type == Type.Path)
+                    else if ((MaxscriptParser.Type)type == MaxscriptParser.Type.Path)
                     {
                         string errorLog = String.Empty;
                         bool result = GlobalInterface.Instance.FileinScriptEx(msg, errorLog);
@@ -89,6 +83,10 @@ namespace ExternalMaxscript
                         {
                             Log(errorLog, true);
                         }
+                    }
+                    else if ((MaxscriptParser.Type) type == MaxscriptParser.Type.ListenerMsg)
+                    {
+                        Log(msg, true);
                     }
 
                     m.Result = (IntPtr)1;

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using ExternalMaxscript;
 
@@ -21,10 +22,12 @@ namespace Test_Application
                     if (line == "exit") // Check string
                         Environment.Exit(0);
 
-                    if (File.Exists(line))
-                        ExternalMaxscriptSender.EvaluateMaxScript(line);
-                    else
-                        ExternalMaxscriptSender.ExecuteMAXScriptScript(line);
+                    //if (File.Exists(line))
+                    //    ExternalMaxscriptSender.EvaluateMaxScript(line);
+                    //else
+                    //    ExternalMaxscriptSender.ExecuteMAXScriptScript(line);
+
+                    ExternalMaxscriptSender.Log(line);
                 }
             }
             else
@@ -33,6 +36,8 @@ namespace Test_Application
             }
 
             Console.ReadLine();
+
+            //Process proc = Process.Start(@"C:\Users\Vincent\Documents\GitHub\ExternalMaxscriptListener\CommandLineApp\bin\x64\Release\CommandLineApp.exe", "Box()");
         }
     }
 }

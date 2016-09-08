@@ -60,6 +60,12 @@
     <Compile Include="ExternalMaxscriptSender.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\Dropbox\ParseMaxscriptFromSublime\ParseMaxscriptFromSublime\MaxscriptParser.csproj">
+      <Project>{4bd79e5f-57da-4c14-bc9b-0df2de74d2c4}</Project>
+      <Name>MaxscriptParser</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
