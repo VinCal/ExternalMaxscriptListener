@@ -1,54 +1,18 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Forms;
 using Autodesk.Max;
+using MAXScriptParserTypes;
 
-namespace ExternalMaxscript
+namespace ExternalMaxscript.Listener
 {
-    /// <summary>
-    /// Autodesk.Max Plugin class, gets loaded when Max loads. Hide the form and disable ShowInTaskbar.
-    /// </summary>
-    public class ExternalMaxscriptListner : IPlugin
-    {
-        private ExternalMaxscriptListener _Dialog;
-
-        public void Cleanup()
-        {
-            _Dialog.Close();
-            _Dialog.Dispose();
-        }
-
-        public void Initialize(IGlobal global, ISynchronizeInvoke sync)
-        {
-            _Dialog = new ExternalMaxscriptListener();
-            _Dialog.Show();
-            _Dialog.Hide();
-            _Dialog.ShowInTaskbar = false;
-        }
-    }
-
+    /// <inheritdoc />
     /// <summary>
     /// ExternalMaxscriptListener is only used to send messages to from any other process and it will then Evaluate the file or Execute the maxscript command
     /// </summary>
-    public class ExternalMaxscriptListener : Form
+    public sealed class ExternalMaxscriptListener : Form
     {
-        private const int WM_USER = 0x0400;
-        private const int WM_USER_INITIALIZE = WM_USER + 0x8000;
-        private const int WM_COPYDATA = 0x4A;
-
-        //Used for WM_COPYDATA for string messages
-        [StructLayout(LayoutKind.Sequential)]
-        private struct COPYDATASTRUCT
-        {
-            public IntPtr dwData;
-            public int cbData;
-            public IntPtr lpData;
-        }
-
         public ExternalMaxscriptListener()
         {
             ClientSize = new System.Drawing.Size(1, 1);
@@ -60,33 +24,36 @@ namespace ExternalMaxscript
         {
             switch (m.Msg)
             {
-                case WM_USER_INITIALIZE:
+                case WindowMessages.WM_USER_INITIALIZE:
                     m.Result = (IntPtr)1;
                     return;
 
-                case WM_COPYDATA:
+                case WindowMessages.WM_COPYDATA:
                     var cds = (COPYDATASTRUCT)Marshal.PtrToStructure(m.LParam, typeof(COPYDATASTRUCT)); 
                     var buff = new byte[cds.cbData];
                     Marshal.Copy(cds.lpData, buff, 0, cds.cbData);
                     string msg = Encoding.ASCII.GetString(buff, 0, cds.cbData);
                     IntPtr type = cds.dwData;
 
-                    if ((MaxscriptParser.Type)type == MaxscriptParser.Type.Command)
+                    // I think we should move this somewhere else 
+                    switch ((MessageType)type)
                     {
-                        GlobalInterface.Instance.ExecuteMAXScriptScript(msg, false, null);
-                    }
-                    else if ((MaxscriptParser.Type)type == MaxscriptParser.Type.Path)
-                    {
-                        string errorLog = String.Empty;
-                        bool result = GlobalInterface.Instance.FileinScriptEx(msg, errorLog);
-                        if (!result)
-                        {
-                            Log(errorLog, true);
-                        }
-                    }
-                    else if ((MaxscriptParser.Type) type == MaxscriptParser.Type.ListenerMsg)
-                    {
-                        Log(msg, true);
+                        case MessageType.Command:
+                            GlobalInterface.Instance.ExecuteMAXScriptScript(msg, false, null);
+                            break;
+                        case MessageType.Path:
+                            string errorLog = string.Empty;
+                            bool result = GlobalInterface.Instance.FileinScriptEx(msg, errorLog);
+                            if (!result)
+                            {
+                                Log(errorLog, true);
+                            }
+                            break;
+                        case MessageType.Log:
+                            Log(msg, true);
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException();
                     }
 
                     m.Result = (IntPtr)1;
@@ -96,6 +63,9 @@ namespace ExternalMaxscript
             base.WndProc(ref m); 
         }
 
+        /// <summary>
+        /// Logs the message to the MAXScript Listener.
+        /// </summary>
         public static void Log(string message, bool newLine)
         {
             GlobalInterface.Instance.TheListener.EditStream.Printf(message + (newLine ? Environment.NewLine : string.Empty), null);
